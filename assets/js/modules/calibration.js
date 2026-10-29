@@ -13,6 +13,6 @@ export function syncControls(mode, values) {
     if(input.type==='checkbox'){input.checked=!!value;continue;}
     input.value=value;
     const output=section.querySelector(`output[for="${input.id}"]`);
-    if(output) output.textContent=`${value}${input.dataset.setting==='scale'||['brightness','contrast'].includes(input.dataset.setting)?' %':' px'}`;
+    if(output) output.textContent=`${['scale','brightness','contrast'].includes(input.dataset.setting)?Math.round(value):value}${['scale','brightness','contrast'].includes(input.dataset.setting)?' %':' px'}`;
   }
 }
