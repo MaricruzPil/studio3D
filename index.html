@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="es-MX">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f7f5f0">
+  <meta name="description" content="StereoVision Studio 3D: visor y calibrador local de anaglifos, imágenes SBS y videos SBS.">
+  <title>StereoVision Studio 3D</title>
+  <link rel="stylesheet" href="./assets/css/styles.css">
+  <script type="importmap">
+    {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js"}}
+  </script>
+  <script type="module" src="./assets/js/main.js"></script>
+</head>
+<body>
+  <div class="app" id="app">
+    <header class="site-header">
+      <a class="brand" href="./" aria-label="StereoVision Studio 3D, inicio">
+        <span class="brand-mark" aria-hidden="true">◐</span>
+        <span>StereoVision <strong>Studio 3D</strong></span>
+      </a>
+      <span class="eyebrow">Estudio de estereoscopía · Ejecución local en el navegador</span>
+    </header>
+
+    <main class="workspace">
+      <section class="workspace-title" aria-labelledby="page-heading">
+        <div>
+          <p class="kicker">Espacio de trabajo</p>
+          <h1 id="page-heading">Visualización y calibración</h1>
+          <p class="subtitle">Selecciona una modalidad, importa tu archivo y ajusta la representación sin modificar el original.</p>
+        </div>
+      </section>
+
+      <nav class="mode-picker" aria-label="Selecciona la modalidad antes de importar">
+        <button class="mode-button" type="button" data-mode="anaglyph" aria-pressed="false"><span class="mode-index">01</span><span>Anaglifo <small>Imagen rojo-cian</small></span></button>
+        <button class="mode-button" type="button" data-mode="sbs" aria-pressed="false"><span class="mode-index">02</span><span>Imagen SBS <small>Perspectivas L / R</small></span></button>
+        <button class="mode-button" type="button" data-mode="video" aria-pressed="false"><span class="mode-index">03</span><span>Video SBS <small>Reproducción 3D</small></span></button>
+      </nav>
+
+      <div class="studio-layout">
+        <section class="viewer-panel" aria-labelledby="viewer-title">
+          <div class="section-bar">
+            <div><p class="kicker">Vista previa</p><h2 id="viewer-title">Visor</h2></div>
+            <div class="view-actions">
+              <span id="mode-indicator" class="status-chip">Sin modalidad</span>
+              <button id="vr-enter" type="button" class="button button-dark" disabled hidden>Entrar a VR</button>
+            </div>
+          </div>
+          <div id="display" class="display" tabindex="0" aria-label="Área de visualización y carga de archivos">
+            <div id="empty-state" class="empty-state">
+              <div class="empty-symbol" aria-hidden="true">◐</div>
+              <h3 id="empty-heading">Selecciona una modalidad</h3>
+              <p id="empty-description">Para comenzar, elige anaglifo, imagen SBS o video SBS.</p>
+            </div>
+            <img id="anaglyph-image" class="anaglyph-image" alt="Imagen anaglifo importada" hidden>
+            <canvas id="stereo-canvas" class="stereo-canvas" aria-label="Dos vistas estereoscópicas: izquierda y derecha" hidden></canvas>
+            <div id="eye-labels" class="eye-labels" hidden><span>Ojo izquierdo</span><span>Ojo derecho</span></div>
+            <div id="orientation-warning" class="orientation-warning" hidden>Gira el teléfono en horizontal para usar tus gafas VR.</div>
+            <div id="vr-controls" class="vr-controls" hidden>
+              <button id="vr-play" type="button" class="button button-light" hidden>Reproducir / pausar</button>
+              <button id="vr-exit" type="button" class="button button-light">Salir de VR</button>
+            </div>
+          </div>
+          <section id="player" class="player" aria-label="Controles de reproducción" hidden>
+            <div class="player-buttons">
+              <button id="play-pause" type="button" class="button button-dark">Reproducir</button>
+              <button id="skip-back" type="button" class="button" aria-label="Retroceder 10 segundos">−10 s</button>
+              <button id="skip-forward" type="button" class="button" aria-label="Adelantar 10 segundos">+10 s</button>
+            </div>
+            <label class="player-timeline"><span class="sr-only">Progreso del video</span><input id="progress" type="range" min="0" max="1000" value="0" step="1"><span id="time-label">0:00 / 0:00</span></label>
+            <label class="volume-control">Volumen <input id="volume" type="range" min="0" max="1" value="1" step="0.05"></label>
+          </section>
+          <div class="feedback" aria-live="polite" aria-atomic="true"><span id="status" data-state="idle">Sin contenido activo</span><span id="file-info"></span></div>
+        </section>
+
+        <aside class="tool-panel" aria-labelledby="tools-heading">
+          <div class="section-bar"><div><p class="kicker">Herramientas</p><h2 id="tools-heading">Importación y ajustes</h2></div></div>
+          <div class="tool-content">
+            <section class="tool-section">
+              <h3>Archivo local</h3>
+              <label class="file-button" for="file-input"><span>Seleccionar archivo</span><span aria-hidden="true">↗</span></label>
+              <input id="file-input" type="file" accept="" disabled>
+              <p id="file-hint" class="hint">Selecciona una modalidad para habilitar la importación.</p>
+              <p class="hint">También puedes arrastrar un archivo sobre el visor. No se sube a ningún servidor.</p>
+            </section>
+
+            <section id="controls-empty" class="tool-section"><h3>Calibración</h3><p class="hint">Los controles aparecen al seleccionar una modalidad; se habilitan después de cargar contenido.</p></section>
+
+            <section id="controls-anaglyph" class="tool-section controls" data-controls="anaglyph" hidden>
+              <h3>Edición de anaglifo</h3>
+              <label>Escala <output for="a-scale">100 %</output><input id="a-scale" data-setting="scale" type="range" min="50" max="200" value="100" step="1"></label>
+              <label>Brillo <output for="a-brightness">100 %</output><input id="a-brightness" data-setting="brightness" type="range" min="50" max="150" value="100" step="1"></label>
+              <label>Contraste <output for="a-contrast">100 %</output><input id="a-contrast" data-setting="contrast" type="range" min="50" max="150" value="100" step="1"></label>
+              <div class="anaglyph-actions"><button id="a-fit" type="button" class="button">Ajustar al visor</button><button id="a-original" type="button" class="button">Ver original</button></div>
+              <label>Fondo del visor <select id="a-background"><option value="black">Negro</option><option value="neutral" selected>Gris neutro</option><option value="white">Blanco</option></select></label>
+              <button type="button" class="button reset-button">Restablecer ajustes</button>
+              <p class="hint lens-hint">Usa lentes rojo-cian para percibir la profundidad estereoscópica.</p>
+            </section>
+
+            <section id="controls-sbs" class="tool-section controls" data-controls="sbs" hidden>
+              <h3>Calibración de imagen SBS</h3>
+              <label>Desplazamiento relativo X <output for="s-horizontal">0 px</output><input id="s-horizontal" data-setting="horizontal" type="range" min="-60" max="60" value="0" step="1"></label>
+              <label>Alineación vertical L/R <output for="s-vertical">0 px</output><input id="s-vertical" data-setting="vertical" type="range" min="-40" max="40" value="0" step="1"></label>
+              <label>Escala <output for="s-scale">100 %</output><input id="s-scale" data-setting="scale" type="range" min="60" max="160" value="100" step="1"></label>
+              <label class="check-label"><input id="s-swap" data-setting="swap" type="checkbox">Intercambiar ojos L / R</label>
+              <button type="button" class="button reset-button">Restablecer calibración</button>
+            </section>
+
+            <section id="controls-video" class="tool-section controls" data-controls="video" hidden>
+              <h3>Calibración de video SBS</h3>
+              <label>Desplazamiento relativo X <output for="v-horizontal">0 px</output><input id="v-horizontal" data-setting="horizontal" type="range" min="-60" max="60" value="0" step="1"></label>
+              <label>Escala <output for="v-scale">100 %</output><input id="v-scale" data-setting="scale" type="range" min="60" max="160" value="100" step="1"></label>
+              <button type="button" class="button reset-button">Restablecer calibración</button>
+            </section>
+          </div>
+        </aside>
+      </div>
+    </main>
+    <footer class="site-footer"><span>StereoVision Studio 3D</span><span>Los archivos permanecen en tu dispositivo · Sin cuenta ni backend</span></footer>
+  </div>
+</body>
+</html>

@@ -1,0 +1,1 @@
+Medios de muestra son imágenes/videos sintéticos originales creados como pares de perspectivas.
