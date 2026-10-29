@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#f7f5f0">
   <meta name="description" content="StereoVision Studio 3D: visor y calibrador local de anaglifos, imágenes SBS y videos SBS.">
-  <title>StereoVision Studio 3D</title>
+  <title>Studio 3D</title>
   <link rel="stylesheet" href="./assets/css/styles.css">
   <script type="importmap">
     {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js"}}
@@ -15,15 +15,14 @@
 <body>
   <div class="app" id="app">
     <header class="site-header">
-      <a class="brand" href="./" aria-label="StereoVision Studio 3D, inicio">
+      <a class="brand" href="./" aria-label="Studio 3D, inicio">
         <span class="brand-mark" aria-hidden="true">◐</span>
-        <span>StereoVision <strong>Studio 3D</strong></span>
+        <span class="wordmark" aria-hidden="true"><span class="wordmark-studio"><span class="wordmark-letter wm-s">S</span><span class="wordmark-letter wm-t">t</span><span class="wordmark-letter wm-u">u</span><span class="wordmark-letter wm-d">d</span><span class="wordmark-letter wm-i">i</span><span class="wordmark-letter wm-o">o</span></span> <strong class="wordmark-3d"><span class="wordmark-letter wm-3">3</span><span class="wordmark-letter wm-d3">D</span></strong></span>
       </a>
-      <span class="eyebrow">Estudio de estereoscopía · Ejecución local en el navegador</span>
       <nav class="mode-picker header-mode-picker" aria-label="Selecciona la modalidad antes de importar">
-        <button class="mode-button" type="button" data-mode="anaglyph" aria-pressed="false"><span class="mode-index">01</span><span>Anaglifo</span></button>
-        <button class="mode-button" type="button" data-mode="sbs" aria-pressed="false"><span class="mode-index">02</span><span>Imagen SBS</span></button>
-        <button class="mode-button" type="button" data-mode="video" aria-pressed="false"><span class="mode-index">03</span><span>Video SBS</span></button>
+        <button class="mode-button" type="button" data-mode="anaglyph" aria-label="Anaglifo" aria-pressed="false"><span class="mode-title" aria-hidden="true">Anaglifo</span></button>
+        <button class="mode-button" type="button" data-mode="sbs" aria-label="Imagen SBS" aria-pressed="false"><span class="mode-title" aria-hidden="true">Imagen SBS</span></button>
+        <button class="mode-button" type="button" data-mode="video" aria-label="Video SBS" aria-pressed="false"><span class="mode-title" aria-hidden="true">Video SBS</span></button>
       </nav>
       <div id="module-preview" class="module-preview" aria-live="polite" hidden><img id="module-preview-image" alt=""><div><p id="module-preview-name"></p><p id="module-preview-description"></p></div></div>
     </header>
@@ -32,7 +31,7 @@
       <section class="workspace-title" aria-labelledby="page-heading">
         <div>
           <p class="kicker">Espacio de trabajo</p>
-          <h1 id="page-heading">Visualización y calibración</h1>
+          <h1 id="page-heading"><span class="title-line"><span class="title-visual">Visualización</span></span><span class="title-line"><span class="title-and">y</span> <span class="title-calibration">calibración</span></span></h1>
           <p class="subtitle">Selecciona una modalidad, importa tu archivo y ajusta la representación sin modificar el original.</p>
         </div>
       </section>
@@ -115,7 +114,7 @@
         </aside>
       </div>
     </main>
-    <footer class="site-footer"><span>StereoVision Studio 3D</span><span>Los archivos permanecen en tu dispositivo · Sin cuenta ni backend</span></footer>
+    <footer class="site-footer"><span>Studio 3D · Maricruz Pineda Lara · 2026 </span><span>Proyecto: Studio 3D · Los archivos permanecen en tu dispositivo</span></footer>
   </div>
 </body>
 </html>
