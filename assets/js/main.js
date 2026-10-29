@@ -91,7 +91,7 @@ for(const section of document.querySelectorAll('[data-controls]')){
     if(!active||section.dataset.controls!==mode)return;
     calibration[input.dataset.setting]=input.type==='checkbox'?input.checked:Number(input.value);
     syncControls(mode,calibration);
-    if(mode==='anaglyph'){resetAnaglyphView();updateAnaglyph(ui.img,calibration);ui.background.value='neutral';applyAnaglyphBackground();}else renderer?.setCalibration(calibration);
+    if(mode==='anaglyph'){resetAnaglyphView();updateAnaglyph(ui.img,calibration);applyAnaglyphBackground();}else renderer?.setCalibration(calibration);
   });
   section.querySelector('.reset-button').addEventListener('click',()=>{
     if(!active)return;resetValues();
