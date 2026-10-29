@@ -20,6 +20,12 @@
         <span>StereoVision <strong>Studio 3D</strong></span>
       </a>
       <span class="eyebrow">Estudio de estereoscopía · Ejecución local en el navegador</span>
+      <nav class="mode-picker header-mode-picker" aria-label="Selecciona la modalidad antes de importar">
+        <button class="mode-button" type="button" data-mode="anaglyph" aria-pressed="false"><span class="mode-index">01</span><span>Anaglifo</span></button>
+        <button class="mode-button" type="button" data-mode="sbs" aria-pressed="false"><span class="mode-index">02</span><span>Imagen SBS</span></button>
+        <button class="mode-button" type="button" data-mode="video" aria-pressed="false"><span class="mode-index">03</span><span>Video SBS</span></button>
+      </nav>
+      <div id="module-preview" class="module-preview" aria-live="polite" hidden><img id="module-preview-image" alt=""><div><p id="module-preview-name"></p><p id="module-preview-description"></p></div></div>
     </header>
 
     <main class="workspace">
@@ -30,12 +36,6 @@
           <p class="subtitle">Selecciona una modalidad, importa tu archivo y ajusta la representación sin modificar el original.</p>
         </div>
       </section>
-
-      <nav class="mode-picker" aria-label="Selecciona la modalidad antes de importar">
-        <button class="mode-button" type="button" data-mode="anaglyph" aria-pressed="false"><span class="mode-index">01</span><span>Anaglifo <small>Imagen rojo-cian</small></span></button>
-        <button class="mode-button" type="button" data-mode="sbs" aria-pressed="false"><span class="mode-index">02</span><span>Imagen SBS <small>Perspectivas L / R</small></span></button>
-        <button class="mode-button" type="button" data-mode="video" aria-pressed="false"><span class="mode-index">03</span><span>Video SBS <small>Reproducción 3D</small></span></button>
-      </nav>
 
       <div class="studio-layout">
         <section class="viewer-panel" aria-labelledby="viewer-title">

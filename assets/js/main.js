@@ -8,6 +8,7 @@ const $=(s)=>document.querySelector(s);
 const ui={file:$('#file-input'),status:$('#status'),info:$('#file-info'),display:$('#display'),empty:$('#empty-state'),emptyTitle:$('#empty-heading'),emptyText:$('#empty-description'),img:$('#anaglyph-image'),canvas:$('#stereo-canvas'),eyes:$('#eye-labels'),modeChip:$('#mode-indicator'),vrEnter:$('#vr-enter'),vrExit:$('#vr-exit'),vrPlay:$('#vr-play'),player:$('#player'),fit:$('#a-fit'),original:$('#a-original'),immersive:$('#a-immersive'),immersiveFit:$('#a-immersive-fit'),immersiveExit:$('#a-immersive-exit')};
 const playerEls={play:$('#play-pause'),back:$('#skip-back'),forward:$('#skip-forward'),progress:$('#progress'),volume:$('#volume'),time:$('#time-label'),vrPlay:ui.vrPlay};
 const names={anaglyph:'Anaglifo rojo-cian',sbs:'Imagen SBS',video:'Video SBS 3D'};
+const previews={anaglyph:{name:'Anaglifo',description:'Visualiza y ajusta imÃ¡genes 3D rojo-cian',image:'./assets/media/demo-anaglifo.png'},sbs:{name:'Imagen SBS',description:'Calibra perspectivas estereoscÃ³picas izquierda y derecha',image:'./assets/media/demo-sbs.jpg'},video:{name:'Video SBS',description:'Reproduce y ajusta videos estereoscÃ³picos 3D',image:'./assets/media/demo-sbs.jpg'}};
 let mode=null,phase='empty',active=null,calibration=null,renderer=null,unbindPlayer=null,unbindPan=null,requestId=0,vr=false,orientationHandler=null;
 
 function feedback(text,state='idle'){ui.status.textContent=text;ui.status.dataset.state=state;}
@@ -84,6 +85,9 @@ async function importFile(file){
 function formatSize(bytes){return bytes<1048576?`${(bytes/1024).toFixed(1)} KB`:`${(bytes/1048576).toFixed(2)} MB`;}
 
 for(const btn of document.querySelectorAll('[data-mode]'))btn.addEventListener('click',()=>selectMode(btn.dataset.mode));
+const preview=$('#module-preview'),previewImage=$('#module-preview-image'),previewName=$('#module-preview-name'),previewDescription=$('#module-preview-description');
+function showModulePreview(key){const item=previews[key];if(!item)return;previewImage.src=item.image;previewImage.alt=`Vista previa de ${item.name}`;previewName.textContent=item.name;previewDescription.textContent=item.description;preview.hidden=false;}
+for(const btn of document.querySelectorAll('.header-mode-picker [data-mode]')){btn.addEventListener('pointerenter',()=>showModulePreview(btn.dataset.mode));btn.addEventListener('focusin',()=>showModulePreview(btn.dataset.mode));}
 ui.file.addEventListener('change',()=>importFile(ui.file.files?.[0]));
 for(const section of document.querySelectorAll('[data-controls]')){
   for(const input of section.querySelectorAll('[data-setting]'))input.addEventListener('input',()=>{
