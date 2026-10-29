@@ -11,6 +11,7 @@ const names={anaglyph:'Anaglifo rojo-cian',sbs:'Imagen SBS',video:'Video SBS 3D'
 let mode=null,phase='empty',active=null,calibration=null,renderer=null,unbindPlayer=null,unbindPan=null,requestId=0,vr=false,orientationHandler=null;
 
 function feedback(text,state='idle'){ui.status.textContent=text;ui.status.dataset.state=state;}
+function applyAnaglyphBackground(){const value=ui.background.value;ui.display.classList.remove('viewer-black','viewer-white');if(value==='black')ui.display.classList.add('viewer-black');if(value==='white')ui.display.classList.add('viewer-white');}
 function setPhase(next,text){phase=next;feedback(text,next);updateUI();}
 function updateUI(){
   for(const btn of document.querySelectorAll('[data-mode]'))btn.setAttribute('aria-pressed',String(btn.dataset.mode===mode));
@@ -38,7 +39,7 @@ function resetValues(){if(!mode)return;calibration=newCalibration(mode);syncCont
 function stopCurrent(){
   unbindPlayer?.();unbindPlayer=null;unbindPan?.();unbindPan=null;
   renderer?.clearTexture();
-  clearAnaglyph(ui.img);releaseLocalFile(active);active=null;ui.info.textContent='';ui.display.classList.remove('viewer-black','viewer-white');ui.background.value='neutral';
+  clearAnaglyph(ui.img);releaseLocalFile(active);active=null;ui.info.textContent='';ui.background.value='neutral';applyAnaglyphBackground();
   playerEls.progress.value=0;playerEls.time.textContent='0:00 / 0:00';
 }
 async function exitVR(){if(!vr)return;vr=false;orientationHandler&&window.removeEventListener('resize',orientationHandler);orientationHandler=null;applyVR(false);await leaveFullscreen();renderer?.draw();updateUI();}
@@ -90,19 +91,19 @@ for(const section of document.querySelectorAll('[data-controls]')){
     if(!active||section.dataset.controls!==mode)return;
     calibration[input.dataset.setting]=input.type==='checkbox'?input.checked:Number(input.value);
     syncControls(mode,calibration);
-    if(mode==='anaglyph'){resetAnaglyphView();updateAnaglyph(ui.img,calibration);ui.background.value='neutral';ui.display.classList.remove('viewer-black','viewer-white');}else renderer?.setCalibration(calibration);
+    if(mode==='anaglyph'){resetAnaglyphView();updateAnaglyph(ui.img,calibration);ui.background.value='neutral';applyAnaglyphBackground();}else renderer?.setCalibration(calibration);
   });
   section.querySelector('.reset-button').addEventListener('click',()=>{
     if(!active)return;resetValues();
-    if(mode==='anaglyph')updateAnaglyph(ui.img,calibration);else renderer?.setCalibration(calibration);
+    if(mode==='anaglyph'){updateAnaglyph(ui.img,calibration);applyAnaglyphBackground();}else renderer?.setCalibration(calibration);
     feedback('Calibración restablecida','ready');
   });
 }
-ui.fit.addEventListener('click',()=>{if(active&&mode==='anaglyph'){calibration.scale=100;resetAnaglyphView();syncControls(mode,calibration);updateAnaglyph(ui.img,calibration)}});
+ui.fit.addEventListener('click',()=>{if(active&&mode==='anaglyph'){calibration.scale=100;resetAnaglyphView();syncControls(mode,calibration);updateAnaglyph(ui.img,calibration);applyAnaglyphBackground()}});
 async function leaveImmersive(){document.body.classList.remove('anaglyph-immersive');ui.immersiveFit.hidden=true;ui.immersiveExit.hidden=true;if(document.fullscreenElement===ui.display)await document.exitFullscreen?.();ui.immersive.textContent='Ampliar visor'}
 ui.immersive.addEventListener('click',async()=>{if(!active||mode!=='anaglyph')return;if(document.body.classList.contains('anaglyph-immersive')){await leaveImmersive();return}document.body.classList.add('anaglyph-immersive');ui.immersive.textContent='Salir del visor';ui.immersiveFit.hidden=false;ui.immersiveExit.hidden=false;try{await ui.display.requestFullscreen?.()}catch{} });
 ui.immersiveFit.addEventListener('click',()=>ui.fit.click());ui.immersiveExit.addEventListener('click',leaveImmersive);
-ui.background.addEventListener('change',()=>{if(mode==='anaglyph'){ui.display.classList.toggle('viewer-black',ui.background.value==='black');ui.display.classList.toggle('viewer-white',ui.background.value==='white')}});
+ui.background.addEventListener('change',()=>{if(mode==='anaglyph')applyAnaglyphBackground()});
 const originalStart=()=>{if(active&&mode==='anaglyph')setOriginalPreview(ui.img,true)},originalEnd=()=>setOriginalPreview(ui.img,false);
 ui.original.addEventListener('pointerdown',originalStart);ui.original.addEventListener('pointerup',originalEnd);ui.original.addEventListener('pointercancel',originalEnd);ui.original.addEventListener('pointerleave',originalEnd);ui.original.addEventListener('keydown',e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();originalStart()}});ui.original.addEventListener('keyup',e=>{if(e.key===' '||e.key==='Enter')originalEnd()});window.addEventListener('pointerup',originalEnd);
 ui.vrEnter.addEventListener('click',async()=>{
