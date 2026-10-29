@@ -5,7 +5,7 @@ import {attachPlayer} from './modules/videoSbs.js';
 import {applyVR,tryFullscreen,leaveFullscreen} from './modules/vrMode.js';
 
 const $=(s)=>document.querySelector(s);
-const ui={file:$('#file-input'),status:$('#status'),info:$('#file-info'),display:$('#display'),empty:$('#empty-state'),emptyTitle:$('#empty-heading'),emptyText:$('#empty-description'),img:$('#anaglyph-image'),canvas:$('#stereo-canvas'),eyes:$('#eye-labels'),modeChip:$('#mode-indicator'),vrEnter:$('#vr-enter'),vrExit:$('#vr-exit'),vrPlay:$('#vr-play'),player:$('#player'),fit:$('#a-fit'),original:$('#a-original'),background:$('#a-background')};
+const ui={file:$('#file-input'),status:$('#status'),info:$('#file-info'),display:$('#display'),empty:$('#empty-state'),emptyTitle:$('#empty-heading'),emptyText:$('#empty-description'),img:$('#anaglyph-image'),canvas:$('#stereo-canvas'),eyes:$('#eye-labels'),modeChip:$('#mode-indicator'),vrEnter:$('#vr-enter'),vrExit:$('#vr-exit'),vrPlay:$('#vr-play'),player:$('#player'),fit:$('#a-fit'),original:$('#a-original'),immersive:$('#a-immersive'),immersiveFit:$('#a-immersive-fit'),immersiveExit:$('#a-immersive-exit'),background:$('#a-background')};
 const playerEls={play:$('#play-pause'),back:$('#skip-back'),forward:$('#skip-forward'),progress:$('#progress'),volume:$('#volume'),time:$('#time-label'),vrPlay:ui.vrPlay};
 const names={anaglyph:'Anaglifo rojo-cian',sbs:'Imagen SBS',video:'Video SBS 3D'};
 let mode=null,phase='empty',active=null,calibration=null,renderer=null,unbindPlayer=null,unbindPan=null,requestId=0,vr=false,orientationHandler=null;
@@ -63,7 +63,7 @@ async function importFile(file){
         if(token!==requestId){releaseLocalFile(result);ui.canvas.hidden=true;return;}
         r.setMedia(result);r.setCalibration(calibration);
       } catch(err){ui.canvas.hidden=true;throw new Error(`No se pudo iniciar Three.js/WebGL: ${err.message}. Comprueba la conexión al CDN y el soporte WebGL.`);}
-    }else{ui.img.src=result.url;updateAnaglyph(ui.img,calibration);unbindPan=attachAnaglyphPan(ui.display,ui.img,()=>calibration);}
+    }else{ui.img.src=result.url;updateAnaglyph(ui.img,calibration);unbindPan=attachAnaglyphPan(ui.display,ui.img,()=>calibration,()=>syncControls('anaglyph',calibration));}
     active=result;ui.info.textContent=`${file.name} · ${file.type||'formato desconocido'} · ${result.width} × ${result.height} px · ${formatSize(file.size)} · Cargado`;
     setPhase('ready','Contenido listo');
     if(mode==='video'){
@@ -99,6 +99,9 @@ for(const section of document.querySelectorAll('[data-controls]')){
   });
 }
 ui.fit.addEventListener('click',()=>{if(active&&mode==='anaglyph'){calibration.scale=100;resetAnaglyphView();syncControls(mode,calibration);updateAnaglyph(ui.img,calibration)}});
+async function leaveImmersive(){document.body.classList.remove('anaglyph-immersive');ui.immersiveFit.hidden=true;ui.immersiveExit.hidden=true;if(document.fullscreenElement===ui.display)await document.exitFullscreen?.();ui.immersive.textContent='Ampliar visor'}
+ui.immersive.addEventListener('click',async()=>{if(!active||mode!=='anaglyph')return;if(document.body.classList.contains('anaglyph-immersive')){await leaveImmersive();return}document.body.classList.add('anaglyph-immersive');ui.immersive.textContent='Salir del visor';ui.immersiveFit.hidden=false;ui.immersiveExit.hidden=false;try{await ui.display.requestFullscreen?.()}catch{} });
+ui.immersiveFit.addEventListener('click',()=>ui.fit.click());ui.immersiveExit.addEventListener('click',leaveImmersive);
 ui.background.addEventListener('change',()=>{if(mode==='anaglyph'){ui.display.classList.toggle('viewer-black',ui.background.value==='black');ui.display.classList.toggle('viewer-white',ui.background.value==='white')}});
 const originalStart=()=>{if(active&&mode==='anaglyph')setOriginalPreview(ui.img,true)},originalEnd=()=>setOriginalPreview(ui.img,false);
 ui.original.addEventListener('pointerdown',originalStart);ui.original.addEventListener('pointerup',originalEnd);ui.original.addEventListener('pointercancel',originalEnd);ui.original.addEventListener('pointerleave',originalEnd);ui.original.addEventListener('keydown',e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();originalStart()}});ui.original.addEventListener('keyup',e=>{if(e.key===' '||e.key==='Enter')originalEnd()});window.addEventListener('pointerup',originalEnd);
@@ -110,7 +113,9 @@ ui.vrEnter.addEventListener('click',async()=>{
 });
 ui.vrExit.addEventListener('click',()=>exitVR());
 document.addEventListener('fullscreenchange',()=>{if(vr&&!document.fullscreenElement)exitVR();});
+document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement&&document.body.classList.contains('anaglyph-immersive'))leaveImmersive()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&vr)exitVR();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.classList.contains('anaglyph-immersive'))leaveImmersive()});
 for(const evt of ['dragenter','dragover'])ui.display.addEventListener(evt,e=>{e.preventDefault();ui.display.classList.add('is-dragover');});
 for(const evt of ['dragleave','drop'])ui.display.addEventListener(evt,e=>{e.preventDefault();ui.display.classList.remove('is-dragover');});
 ui.display.addEventListener('drop',e=>importFile(e.dataTransfer.files?.[0]));
