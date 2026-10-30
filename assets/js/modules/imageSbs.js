@@ -13,7 +13,7 @@ export class StereoRenderer {
     this.geometry=[this.makeGeometry(0),this.makeGeometry(1)];
     this.material=this.scenes.map(()=>new THREE.MeshBasicMaterial({side:THREE.DoubleSide}));
     this.meshes=this.scenes.map((scene,i)=>{const mesh=new THREE.Mesh(this.geometry[i],this.material[i]);scene.add(mesh);return mesh;});
-    this.texture=null;this.width=0;this.height=0;this.settings={horizontal:0,vertical:0,scale:100,swap:false};
+    this.texture=null;this.width=0;this.height=0;this.settings={parallax:0,scale:100,panX:0,panY:0,vertical:0,format:'full',swap:false};
     this.raf=0;this.playing=false;this.media=null;
     this.resizeObserver=new ResizeObserver(()=>this.draw());this.resizeObserver.observe(container);
   }
@@ -41,16 +41,25 @@ export class StereoRenderer {
     const leftW=Math.floor(w/2),rightW=w-leftW;
     this.renderer.setSize(w,h,false);
     const eyeW=Math.min(leftW,rightW);
-    const eyeAspect=(this.width/2)/this.height;
+    const eyeAspect=(this.settings.format==='half'?this.width:this.width/2)/this.height;
     const fitW=Math.min(eyeW,h*eyeAspect),fitH=fitW/eyeAspect;
     const scale=(this.settings.scale??100)/100;
+    const worldW=fitW*scale,worldH=fitH*scale;
+    const px=1;
+    const parallax=(this.settings.parallax||0)/2;
+    const vertical=(this.settings.vertical||0)/2;
+    const panX=this.settings.panX||0,panY=this.settings.panY||0;
+    const xLimit=Math.max(0,w/4+worldW/2-12);
+    const yLimit=Math.max(0,h/2+worldH/2-12);
+    const boundedPanX=Math.max(-xLimit+Math.abs(parallax),Math.min(xLimit-Math.abs(parallax),panX));
+    const boundedPanY=Math.max(-yLimit+Math.abs(vertical),Math.min(yLimit-Math.abs(vertical),panY));
     for(let i=0;i<2;i++){
       const eye=(i===0?0:1);
       const source=(this.settings.swap?1-eye:eye);
       this.meshes[i].geometry=this.geometry[source];
-      this.meshes[i].scale.set(fitW*scale,fitH*scale,1);
-      this.meshes[i].position.x=(i===0?-1:1)*(this.settings.horizontal||0)/2;
-      this.meshes[i].position.y=(i===0?-1:1)*(this.settings.vertical||0)/2;
+      this.meshes[i].scale.set(worldW,worldH,1);
+      this.meshes[i].position.x=boundedPanX+(i===0?-parallax:parallax);
+      this.meshes[i].position.y=-boundedPanY+(i===0?vertical:-vertical);
     }
     this.camera.left=-eyeW/2;this.camera.right=eyeW/2;
     this.camera.top=h/2;this.camera.bottom=-h/2;this.camera.updateProjectionMatrix();

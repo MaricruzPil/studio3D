@@ -97,10 +97,20 @@
 
             <section id="controls-sbs" class="tool-section controls" data-controls="sbs" hidden>
               <h3>Calibración de imagen SBS</h3>
-              <label>Desplazamiento relativo X <output for="s-horizontal">0 px</output><input id="s-horizontal" data-setting="horizontal" type="range" min="-60" max="60" value="0" step="1"></label>
-              <label>Alineación vertical L/R <output for="s-vertical">0 px</output><input id="s-vertical" data-setting="vertical" type="range" min="-40" max="40" value="0" step="1"></label>
-              <label>Escala <output for="s-scale">100 %</output><input id="s-scale" data-setting="scale" type="range" min="60" max="160" value="100" step="1"></label>
-              <label class="check-label"><input id="s-swap" data-setting="swap" type="checkbox">Intercambiar ojos L / R</label>
+              <fieldset class="control-group"><legend>Profundidad y alineación</legend>
+                <label>Paralaje <output for="s-parallax">0 px</output><input id="s-parallax" data-setting="parallax" type="range" min="-100" max="100" value="0" step="1"></label>
+                <label>Desnivel vertical L/R <output for="s-vertical">0 px</output><input id="s-vertical" data-setting="vertical" type="range" min="-50" max="50" value="0" step="1"></label>
+              </fieldset>
+              <fieldset class="control-group"><legend>Encuadre</legend>
+                <label>Escala <output for="s-scale">100 %</output><input id="s-scale" data-setting="scale" type="range" min="40" max="220" value="100" step="1"></label>
+                <label>Mover X <output for="s-horizontal">0 px</output><input id="s-horizontal" data-setting="panX" type="range" min="-160" max="160" value="0" step="1"></label>
+                <label>Mover Y <output for="s-pan-y">0 px</output><input id="s-pan-y" data-setting="panY" type="range" min="-120" max="120" value="0" step="1"></label>
+              </fieldset>
+              <fieldset class="control-group"><legend>Formato SBS</legend>
+                <label>Tipo de imagen <select id="s-format" data-setting="format"><option value="full">Full-SBS</option><option value="half">Half-SBS</option></select></label>
+                <label class="check-label"><input id="s-swap" data-setting="swap" type="checkbox">Intercambiar ojos L / R</label>
+              </fieldset>
+              <div class="sbs-actions"><button id="s-fit" type="button" class="button">Ajustar al visor</button><button id="s-save" type="button" class="button">Guardar ajustes JSON</button></div>
               <button type="button" class="button reset-button">Restablecer calibración</button>
             </section>
 

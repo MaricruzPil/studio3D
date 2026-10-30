@@ -19,8 +19,8 @@ function updateUI(){
   $('#controls-empty').hidden=!!mode;
   ui.file.disabled=!mode||phase==='loading';
   $('label[for="file-input"]').classList.toggle('is-disabled',ui.file.disabled);
-  ui.file.accept=mode==='video'?'.mp4,video/mp4':'.jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp';
-  $('#file-hint').textContent=mode?(mode==='video'?'Archivo MP4 compatible con el navegador.':'Imagen JPG/JPEG, PNG o WebP.'):'Primero selecciona una modalidad.';
+  ui.file.accept=mode==='video'?'.mp4,video/mp4':mode==='sbs'?'.jpg,.jpeg,.png,.webp,.avif,image/jpeg,image/png,image/webp,image/avif':'.jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp';
+  $('#file-hint').textContent=mode?(mode==='video'?'Archivo MP4 compatible con el navegador.':mode==='sbs'?'Imagen JPG/JPEG, PNG, WebP o AVIF (máximo 30 MB).':'Imagen JPG/JPEG, PNG o WebP.'):'Primero selecciona una modalidad.';
   const ready=phase==='ready'&&!!active;
   for(const panel of document.querySelectorAll('.controls'))for(const input of panel.querySelectorAll('input,button'))input.disabled=!ready||panel.dataset.controls!==mode;
   ui.modeChip.textContent=mode?names[mode]:'Sin modalidad';
@@ -108,6 +108,8 @@ for(const section of document.querySelectorAll('[data-controls]')){
   });
 }
 ui.fit.addEventListener('click',()=>{if(active&&mode==='anaglyph'){calibration.scale=100;resetAnaglyphView();syncControls(mode,calibration);updateAnaglyph(ui.img,calibration)}});
+$('#s-fit').addEventListener('click',()=>{if(active&&mode==='sbs'){calibration.scale=100;calibration.panX=0;calibration.panY=0;syncControls(mode,calibration);renderer?.setCalibration(calibration);feedback('Visor ajustado','ready')}});
+$('#s-save').addEventListener('click',()=>{if(!active||mode!=='sbs')return;const payload={proyecto:'Studio 3D',modalidad:'imagen-sbs',imagen:{name:active.file.name,type:active.file.type||'unknown',width:active.width,height:active.height,size:active.file.size},calibracion:{parallax:calibration.parallax,scale:calibration.scale,panX:calibration.panX,panY:calibration.panY,vertical:calibration.vertical,format:calibration.format,swap:calibration.swap},fecha:new Date().toISOString()};const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download='calibracion-sbs.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);feedback('Ajustes descargados como JSON','ready')});
 async function leaveImmersive(){document.body.classList.remove('anaglyph-immersive');ui.immersiveFit.hidden=true;ui.immersiveExit.hidden=true;if(document.fullscreenElement===ui.display)await document.exitFullscreen?.();ui.immersive.textContent='Ampliar visor'}
 ui.immersive.addEventListener('click',async()=>{if(!active||mode!=='anaglyph')return;if(document.body.classList.contains('anaglyph-immersive')){await leaveImmersive();return}document.body.classList.add('anaglyph-immersive');ui.immersive.textContent='Salir del visor';ui.immersiveFit.hidden=false;ui.immersiveExit.hidden=false;try{await ui.display.requestFullscreen?.()}catch{} });
 ui.immersiveFit.addEventListener('click',()=>ui.fit.click());ui.immersiveExit.addEventListener('click',leaveImmersive);
