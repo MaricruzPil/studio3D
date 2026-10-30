@@ -14,6 +14,9 @@ export function syncControls(mode, values) {
     if(input.tagName==='SELECT'){input.value=value;continue;}
     input.value=value;
     const output=section.querySelector(`output[for="${input.id}"]`);
-    if(output) output.textContent=`${['scale','brightness','contrast'].includes(input.dataset.setting)?Math.round(value):value}${['scale','brightness','contrast'].includes(input.dataset.setting)?' %':' px'}`;
+    if(output){
+      const isPercentage=['scale','brightness','contrast'].includes(input.dataset.setting);
+      output.textContent=isPercentage?`${Math.round(value)} %`:`${value} px`;
+    }
   }
 }
