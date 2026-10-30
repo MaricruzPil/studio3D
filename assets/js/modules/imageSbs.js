@@ -15,7 +15,12 @@ export class StereoRenderer {
     this.meshes=this.scenes.map((scene,i)=>{const mesh=new THREE.Mesh(this.geometry[i],this.material[i]);scene.add(mesh);return mesh;});
     this.texture=null;this.width=0;this.height=0;this.settings={parallax:0,scale:100,panX:0,panY:0,vertical:0,format:'full',swap:false};
     this.raf=0;this.playing=false;this.media=null;
-    this.resizeObserver=new ResizeObserver(()=>this.draw());this.resizeObserver.observe(container);
+    this.resizeRaf=0;
+    this.scheduleResize=()=>{cancelAnimationFrame(this.resizeRaf);this.resizeRaf=requestAnimationFrame(()=>{this.resizeRaf=0;this.renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));this.draw();});};
+    this.resizeObserver=new ResizeObserver(()=>this.scheduleResize());this.resizeObserver.observe(container);
+    this.resizeTargets=[window,window.visualViewport].filter(Boolean);
+    this.resizeTargets.forEach(target=>target.addEventListener('resize',this.scheduleResize,{passive:true}));
+    window.addEventListener('orientationchange',this.scheduleResize,{passive:true});
   }
   makeGeometry(eye){
     const g=new THREE.PlaneGeometry(1,1);
@@ -73,5 +78,5 @@ export class StereoRenderer {
   start(){if(this.playing)return;this.playing=true;const loop=()=>{if(!this.playing)return;this.draw();this.raf=requestAnimationFrame(loop);};this.raf=requestAnimationFrame(loop);}
   stop(){this.playing=false;cancelAnimationFrame(this.raf);this.raf=0;}
   clearTexture(){this.stop();if(this.texture){for(const material of this.material){material.map=null;material.needsUpdate=true;}this.texture.dispose();this.texture=null;}this.media=null;}
-  dispose(){this.resizeObserver.disconnect();this.clearTexture();this.geometry.forEach(x=>x.dispose());this.material.forEach(x=>x.dispose());this.renderer.dispose();}
+  dispose(){this.resizeObserver.disconnect();this.resizeTargets.forEach(target=>target.removeEventListener('resize',this.scheduleResize));window.removeEventListener('orientationchange',this.scheduleResize);cancelAnimationFrame(this.resizeRaf);this.clearTexture();this.geometry.forEach(x=>x.dispose());this.material.forEach(x=>x.dispose());this.renderer.dispose();}
 }
