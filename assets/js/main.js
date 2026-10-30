@@ -22,7 +22,7 @@ function updateUI(){
   ui.file.accept=mode==='video'?'.mp4,video/mp4':mode==='sbs'?'.jpg,.jpeg,.png,.webp,.avif,image/jpeg,image/png,image/webp,image/avif':'.jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp';
   $('#file-hint').textContent=mode?(mode==='video'?'Archivo MP4 compatible con el navegador.':mode==='sbs'?'Imagen JPG/JPEG, PNG, WebP o AVIF (máximo 30 MB).':'Imagen JPG/JPEG, PNG o WebP.'):'Primero selecciona una modalidad.';
   const ready=phase==='ready'&&!!active;
-  for(const panel of document.querySelectorAll('.controls'))for(const input of panel.querySelectorAll('input,button'))input.disabled=!ready||panel.dataset.controls!==mode;
+  for(const panel of document.querySelectorAll('.controls'))for(const input of panel.querySelectorAll('input,select,button'))input.disabled=!ready||panel.dataset.controls!==mode;
   ui.modeChip.textContent=mode?names[mode]:'Sin modalidad';
   ui.vrEnter.hidden=!(ready&&mode!=='anaglyph');ui.vrEnter.disabled=!ready;
   ui.player.hidden=!(ready&&mode==='video');
@@ -95,12 +95,12 @@ for(const btn of document.querySelectorAll('.header-mode-picker [data-mode]')){b
 preview.addEventListener('pointerenter',()=>{previewInside=true;clearTimeout(previewCloseTimer);clearTimeout(previewHideTimer)});preview.addEventListener('pointerleave',()=>{previewInside=false;previewCloseTimer=setTimeout(closeModulePreview,120)});
 ui.file.addEventListener('change',()=>importFile(ui.file.files?.[0]));
 for(const section of document.querySelectorAll('[data-controls]')){
-  for(const input of section.querySelectorAll('[data-setting]'))input.addEventListener('input',()=>{
+  for(const input of section.querySelectorAll('[data-setting]')){const applySetting=()=>{
     if(!active||section.dataset.controls!==mode)return;
     calibration[input.dataset.setting]=input.type==='checkbox'?input.checked:Number(input.value);
     syncControls(mode,calibration);
     if(mode==='anaglyph'){resetAnaglyphView();updateAnaglyph(ui.img,calibration);}else renderer?.setCalibration(calibration);
-  });
+  };input.addEventListener(input.tagName==='SELECT'?'change':'input',applySetting);}
   section.querySelector('.reset-button').addEventListener('click',()=>{
     if(!active)return;resetValues();
     if(mode==='anaglyph')updateAnaglyph(ui.img,calibration);else renderer?.setCalibration(calibration);
