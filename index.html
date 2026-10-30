@@ -41,7 +41,7 @@
           <div class="section-bar">
             <div><p class="kicker">Vista previa</p><h2 id="viewer-title">Visor</h2></div>
             <div class="view-actions">
-              <span id="mode-indicator" class="status-chip">Sin modalidad</span><button id="a-immersive-fit" type="button" class="button button-light immersive-control" hidden>Ajustar</button><button id="a-immersive-exit" type="button" class="button button-light immersive-control" hidden>Salir</button>
+              <span id="mode-indicator" class="status-chip">Sin modalidad</span><div id="sbs-interaction-controls" class="sbs-interaction-controls" hidden><button id="s-move-mode" type="button" class="button" aria-pressed="true">Mover</button><button id="s-separate-mode" type="button" class="button" aria-pressed="false">Separar</button></div><button id="s-expand" type="button" class="button button-light" hidden>Ampliar vista previa</button><button id="a-immersive-fit" type="button" class="button button-light immersive-control" hidden>Ajustar</button><button id="a-immersive-exit" type="button" class="button button-light immersive-control" hidden>Salir</button>
               <button id="vr-enter" type="button" class="button button-dark" disabled hidden>Entrar a VR</button>
             </div>
           </div>
@@ -59,6 +59,7 @@
               <button id="vr-play" type="button" class="button button-light" hidden>Reproducir / pausar</button>
               <button id="vr-exit" type="button" class="button button-light">Salir de VR</button>
             </div>
+            <button id="s-preview-close" type="button" class="button button-light s-preview-close" hidden>Cerrar vista previa</button>
           </div>
           <section id="player" class="player" aria-label="Controles de reproducción" hidden>
             <div class="player-buttons">

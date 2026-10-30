@@ -1,7 +1,7 @@
 /** Calibración exclusivamente visual, nunca modifica el archivo original. */
 export const defaults = Object.freeze({
   anaglyph: Object.freeze({scale:100, brightness:100, contrast:100}),
-  sbs: Object.freeze({parallax:0, scale:100, panX:0, panY:0, vertical:0, format:'full', swap:false}),
+  sbs: Object.freeze({parallax:0, scale:100, panX:0, panY:0, vertical:0, format:'full', swap:false, interactionMode:'move'}),
   video: Object.freeze({horizontal:0, scale:100})
 });
 export function newCalibration(mode) {return {...defaults[mode]};}

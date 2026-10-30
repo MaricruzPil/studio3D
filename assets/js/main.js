@@ -3,13 +3,14 @@ import {updateAnaglyph,clearAnaglyph,resetAnaglyphView,attachAnaglyphPan,setOrig
 import {openLocalFile,releaseLocalFile} from './modules/fileLoader.js';
 import {attachPlayer} from './modules/videoSbs.js';
 import {applyVR,tryFullscreen,leaveFullscreen} from './modules/vrMode.js';
+import {attachSbsInteractions} from './modules/sbsInteractions.js';
 
 const $=(s)=>document.querySelector(s);
 const ui={file:$('#file-input'),status:$('#status'),info:$('#file-info'),display:$('#display'),empty:$('#empty-state'),emptyTitle:$('#empty-heading'),emptyText:$('#empty-description'),img:$('#anaglyph-image'),canvas:$('#stereo-canvas'),eyes:$('#eye-labels'),modeChip:$('#mode-indicator'),vrEnter:$('#vr-enter'),vrExit:$('#vr-exit'),vrPlay:$('#vr-play'),player:$('#player'),fit:$('#a-fit'),original:$('#a-original'),immersive:$('#a-immersive'),immersiveFit:$('#a-immersive-fit'),immersiveExit:$('#a-immersive-exit')};
 const playerEls={play:$('#play-pause'),back:$('#skip-back'),forward:$('#skip-forward'),progress:$('#progress'),volume:$('#volume'),time:$('#time-label'),vrPlay:ui.vrPlay};
 const names={anaglyph:'Anaglifo rojo-cian',sbs:'Imagen SBS',video:'Video SBS 3D'};
 const previews={anaglyph:{name:'Anaglifo',description:'Visualiza y ajusta imágenes 3D rojo-cian',image:'./assets/media/demo-anaglifo.png'},sbs:{name:'Imagen SBS',description:'Calibra perspectivas estereoscópicas izquierda y derecha',image:'./assets/media/demo-sbs.jpg'},video:{name:'Video SBS',description:'Reproduce y ajusta videos estereoscópicos 3D',image:'./assets/media/demo-sbs.jpg'}};
-let mode=null,phase='empty',active=null,calibration=null,renderer=null,unbindPlayer=null,unbindPan=null,requestId=0,vr=false,orientationHandler=null;
+let mode=null,phase='empty',active=null,calibration=null,renderer=null,unbindPlayer=null,unbindPan=null,unbindSbsInteractions=null,requestId=0,vr=false,orientationHandler=null;
 
 function feedback(text,state='idle'){ui.status.textContent=text;ui.status.dataset.state=state;}
 function setPhase(next,text){phase=next;feedback(text,next);updateUI();}
@@ -17,6 +18,11 @@ function updateUI(){
   for(const btn of document.querySelectorAll('[data-mode]'))btn.setAttribute('aria-pressed',String(btn.dataset.mode===mode));
   for(const section of document.querySelectorAll('[data-controls]'))section.hidden=section.dataset.controls!==mode;
   $('#controls-empty').hidden=!!mode;
+  const sbsReady=mode==='sbs'&&phase==='ready'&&!!active;
+  $('#sbs-interaction-controls').hidden=!sbsReady;$('#s-expand').hidden=!sbsReady;$('#s-expand').disabled=!sbsReady;
+  ui.display.classList.toggle('sbs-gesture-surface',sbsReady);
+  $('#s-move-mode').setAttribute('aria-pressed',String((calibration?.interactionMode||'move')==='move'));
+  $('#s-separate-mode').setAttribute('aria-pressed',String(calibration?.interactionMode==='separate'));
   ui.file.disabled=!mode||phase==='loading';
   $('label[for="file-input"]').classList.toggle('is-disabled',ui.file.disabled);
   ui.file.accept=mode==='video'?'.mp4,video/mp4':mode==='sbs'?'.jpg,.jpeg,.png,.webp,.avif,image/jpeg,image/png,image/webp,image/avif':'.jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp';
@@ -44,9 +50,10 @@ function stopCurrent(){
 }
 async function exitVR(){if(!vr)return;vr=false;orientationHandler&&window.removeEventListener('resize',orientationHandler);orientationHandler=null;applyVR(false);await leaveFullscreen();renderer?.draw();updateUI();}
 async function selectMode(next){
-  requestId++;if(vr)await exitVR();stopCurrent();mode=next;resetValues();setPhase('empty','Sin contenido activo');
+  requestId++;if(vr)await exitVR();setSbsExpanded(false);stopCurrent();mode=next;resetValues();setPhase('empty','Sin contenido activo');
 }
-async function requireRenderer(){if(renderer)return renderer;const {StereoRenderer}=await import('./modules/imageSbs.js');renderer=new StereoRenderer(ui.canvas,ui.display);return renderer;}
+function ensureSbsInteractions(){if(unbindSbsInteractions)return;unbindSbsInteractions=attachSbsInteractions(ui.display,()=>calibration,()=>{if(mode!=='sbs'||!active)return;syncControls('sbs',calibration);renderer?.setCalibration(calibration);},()=>mode==='sbs'&&!!active,type=>{if(vr&&type==='touch')exitVR()});}
+async function requireRenderer(){if(renderer){ensureSbsInteractions();return renderer;}const {StereoRenderer}=await import('./modules/imageSbs.js');renderer=new StereoRenderer(ui.canvas,ui.display);ensureSbsInteractions();return renderer;}
 async function importFile(file){
   if(!mode){feedback('Primero selecciona una modalidad.','error');return;}
   if(!file)return;
@@ -109,7 +116,12 @@ for(const section of document.querySelectorAll('[data-controls]')){
 }
 ui.fit.addEventListener('click',()=>{if(active&&mode==='anaglyph'){calibration.scale=100;resetAnaglyphView();syncControls(mode,calibration);updateAnaglyph(ui.img,calibration)}});
 $('#s-fit').addEventListener('click',()=>{if(active&&mode==='sbs'){calibration.scale=100;calibration.panX=0;calibration.panY=0;syncControls(mode,calibration);renderer?.setCalibration(calibration);feedback('Visor ajustado','ready')}});
-$('#s-save').addEventListener('click',()=>{if(!active||mode!=='sbs')return;const payload={proyecto:'Studio 3D',modalidad:'imagen-sbs',imagen:{name:active.file.name,type:active.file.type||'unknown',width:active.width,height:active.height,size:active.file.size},calibracion:{parallax:calibration.parallax,scale:calibration.scale,panX:calibration.panX,panY:calibration.panY,vertical:calibration.vertical,format:calibration.format,swap:calibration.swap},fecha:new Date().toISOString()};const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download='calibracion-sbs.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);feedback('Ajustes descargados como JSON','ready')});
+$('#s-save').addEventListener('click',()=>{if(!active||mode!=='sbs')return;const payload={proyecto:'Studio 3D',modalidad:'imagen-sbs',imagen:{name:active.file.name,type:active.file.type||'unknown',width:active.width,height:active.height,size:active.file.size},calibracion:{parallax:calibration.parallax,scale:calibration.scale,panX:calibration.panX,panY:calibration.panY,vertical:calibration.vertical,format:calibration.format,swap:calibration.swap,interactionMode:calibration.interactionMode},fecha:new Date().toISOString()};const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download='calibracion-sbs.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);feedback('Ajustes descargados como JSON','ready')});
+function setSbsExpanded(expanded){document.body.classList.toggle('sbs-preview-expanded',expanded);$('#s-expand').textContent=expanded?'Reducir vista previa':'Ampliar vista previa';$('#s-preview-close').hidden=!expanded;requestAnimationFrame(()=>renderer?.draw())}
+$('#s-move-mode').addEventListener('click',()=>{if(!calibration||mode!=='sbs')return;calibration.interactionMode='move';syncControls(mode,calibration);updateUI()});
+$('#s-separate-mode').addEventListener('click',()=>{if(!calibration||mode!=='sbs')return;calibration.interactionMode='separate';syncControls(mode,calibration);updateUI()});
+$('#s-expand').addEventListener('click',()=>setSbsExpanded(!document.body.classList.contains('sbs-preview-expanded')));
+$('#s-preview-close').addEventListener('click',()=>setSbsExpanded(false));
 async function leaveImmersive(){document.body.classList.remove('anaglyph-immersive');ui.immersiveFit.hidden=true;ui.immersiveExit.hidden=true;if(document.fullscreenElement===ui.display)await document.exitFullscreen?.();ui.immersive.textContent='Ampliar visor'}
 ui.immersive.addEventListener('click',async()=>{if(!active||mode!=='anaglyph')return;if(document.body.classList.contains('anaglyph-immersive')){await leaveImmersive();return}document.body.classList.add('anaglyph-immersive');ui.immersive.textContent='Salir del visor';ui.immersiveFit.hidden=false;ui.immersiveExit.hidden=false;try{await ui.display.requestFullscreen?.()}catch{} });
 ui.immersiveFit.addEventListener('click',()=>ui.fit.click());ui.immersiveExit.addEventListener('click',leaveImmersive);
@@ -117,6 +129,7 @@ const originalStart=()=>{if(active&&mode==='anaglyph')setOriginalPreview(ui.img,
 ui.original.addEventListener('pointerdown',originalStart);ui.original.addEventListener('pointerup',originalEnd);ui.original.addEventListener('pointercancel',originalEnd);ui.original.addEventListener('pointerleave',originalEnd);ui.original.addEventListener('keydown',e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();originalStart()}});ui.original.addEventListener('keyup',e=>{if(e.key===' '||e.key==='Enter')originalEnd()});window.addEventListener('pointerup',originalEnd);
 ui.vrEnter.addEventListener('click',async()=>{
   if(!active||mode==='anaglyph')return;
+  setSbsExpanded(false);
   vr=true;orientationHandler=applyVR(true);window.addEventListener('resize',orientationHandler);
   ui.vrPlay.hidden=mode!=='video';
   await tryFullscreen();renderer?.draw();
