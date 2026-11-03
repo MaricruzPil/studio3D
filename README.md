@@ -1,90 +1,149 @@
-# StereoVision Studio 3D
+# Studio 3D
 
-Proyecto web estático de la práctica **Tema 2. Estereoscopía**. Repositorio independiente del proyecto anterior [StereoLab / visor-sbs](https://github.com/MaricruzPil/visor-sbs). Esta base está preparada para adaptar después el diseño visual definitivo.
+**Visualización, edición y calibración de contenido estereoscópico en la web.**
 
-## Funciones incluidas en este primer entregable
+[**Abrir la aplicación**](https://maricruzpil.github.io/studio3D/) · [**Repositorio en GitHub**](https://github.com/MaricruzPil/studio3D)
 
-1. Elegir antes de importar el módulo **anaglifo rojo-cian**, **imagen SBS** o **video SBS**.
-2. Importar archivos locales JPG/JPEG, PNG, WebP o MP4 según el módulo; rechazar errores habituales con mensajes recuperables.
-3. Visualizar un anaglifo con controles **escala, brillo, contraste, restablecer**.
-4. Visualizar imágenes SBS con **recorte UV izquierda/derecha real**, escala, desplazamiento X relativo, alineación vertical, intercambio de ojos y restablecer.
-5. Visualizar un video SBS con **una sola fuente HTMLVideoElement** y **THREE.VideoTexture**, controles de reproducción, búsqueda, tiempo y volumen, además de escala y desplazamiento.
-6. Modo VR responsivo para SBS imagen y video: oculta el editor, muestra dos vistas, avisa si el dispositivo está vertical y permite salir con botón táctil. Fullscreen y orientación se solicitan cuando el navegador lo permita; hay alternativa CSS.
-7. Solo un archivo activo; al sustituirlo se detiene el video, se libera la textura y se revoca la URL temporal. Calibración reiniciada con el siguiente archivo.
-8. Sin cuenta, servidor backend, base de datos o almacenamiento de los archivos del usuario.
+StereoVision Studio 3D es una aplicación web desarrollada para el examen **Tema 2. Estereoscopía**. Permite importar archivos locales y ajustar la presentación de imágenes anaglifo rojo-cian, imágenes Side-by-Side (SBS) y videos SBS 3D desde una interfaz responsiva, sin modificar el archivo de origen.
 
-El diseño es intencionalmente **neutro y provisional**: no determina la estética final del proyecto.
+El proyecto está dirigido a estudiantes, docentes y personas que necesitan examinar y calibrar material estereoscópico en una computadora o teléfono. Su propósito es **visualizar contenido que ya contiene información para cada ojo**; no convierte automáticamente fotografías o videos 2D en contenido 3D real.
 
-## Estructura
+## Funcionalidades
+
+### Anaglifo rojo-cian
+
+- Importación de imágenes **JPG/JPEG, PNG y WebP**.
+- Ajustes en tiempo real de escala, brillo y contraste.
+- Desplazamiento del encuadre (Pan) y zoom táctil mediante dos dedos.
+- Opciones Ver original, Ajustar al visor, vista inmersiva y restablecimiento.
+- **Exportación a PNG** de la imagen con la calibración visual aplicada.
+- Visualización estereoscópica con lentes físicos rojo-cian y material anaglifo auténtico.
+
+### Imagen SBS
+
+- Importación de imágenes **JPG/JPEG, PNG, WebP y AVIF**, con un límite de **30 MB** para este módulo.
+- Separación y representación de las perspectivas izquierda y derecha mediante recorte de textura con Three.js.
+- Selección de formato Full-SBS / Half-SBS.
+- Ajustes de paralaje, alineación vertical, escala y desplazamiento X/Y.
+- Opción para intercambiar las perspectivas izquierda y derecha.
+- Gestos Mover, Separar y zoom con dos dedos, además de vista previa ampliada.
+- Modo VR para visualización en horizontal desde un teléfono.
+- Exportación PNG y descarga de parámetros de calibración en JSON.
+
+### Video SBS
+
+- Importación de archivos **MP4 compatibles con el navegador**; para mayor compatibilidad se recomienda video H.264.
+- Un único video de origen para mantener sincronizadas ambas perspectivas.
+- Controles de reproducción, pausa, adelanto/retroceso, barra de progreso, volumen, tiempo actual y duración.
+- Ajustes de desplazamiento horizontal y vertical, separación/paralaje y escala, incluso durante la reproducción.
+- Gestos táctiles Mover, Separar y zoom con dos dedos.
+- Modo VR con controles compactos para reproducir/pausar y salir.
+- Exportación de video procesado, cuando el navegador admite `canvas.captureStream()` y `MediaRecorder`. El formato puede ser MP4 o WebM; la inclusión de audio depende del soporte del navegador.
+
+## Modo VR y compatibilidad móvil
+
+Los módulos Imagen SBS y Video SBS ofrecen un visor de dos regiones, una para cada ojo. Al entrar en VR se ocultan las herramientas de edición, se conserva la calibración y se muestra una indicación para colocar el teléfono horizontalmente cuando es necesario.
+
+La aplicación solicita pantalla completa y bloqueo de orientación cuando el navegador lo permite. Cuando estas funciones están restringidas, utiliza una presentación alternativa dentro de la página. Para comprobar la profundidad se necesita contenido SBS auténtico y un visor para teléfono tipo Cardboard.
+
+**Confort visual:** el paralaje digital no cambia la distancia interpupilar física ni sustituye la calibración óptica de las gafas. Interrumpe la visualización si se presenta mareo, fatiga o visión doble persistente.
+
+## Cómo utilizar la aplicación
+
+1. Abre el [sitio publicado](https://maricruzpil.github.io/studio3D/).
+2. Selecciona Anaglifo, Imagen SBS o Video SBS.
+3. Pulsa Seleccionar archivo y elige un contenido local compatible. En computadora también puedes arrastrarlo al visor.
+4. Ajusta los parámetros del módulo. Puedes restablecerlos en cualquier momento.
+5. Para Imagen SBS o Video SBS, entra en VR si deseas usar el teléfono con gafas apropiadas.
+6. Utiliza las opciones de exportación si necesitas guardar el resultado procesado o, en Imagen SBS, descargar la calibración JSON.
+
+Al sustituir un archivo se libera el contenido previo y los controles de calibración regresan a sus valores iniciales. Los formatos inválidos o incompatibles muestran mensajes de error recuperables.
+
+## Tecnologías
+
+| Tecnología | Uso en el proyecto |
+| --- | --- |
+| HTML5 | Estructura y controles de la interfaz |
+| CSS3 | Diseño responsivo, estados visuales y estilos de sliders/botones |
+| JavaScript (módulos ES) | Importación, estado, calibración y eventos |
+| Three.js 0.180.0 | Renderizado WebGL de las dos perspectivas SBS |
+| Canvas 2D | Generación de imágenes PNG con ajustes |
+| HTMLVideoElement y VideoTexture | Reproducción y representación sincronizada de video SBS |
+| MediaRecorder y captureStream | Exportación de video según soporte del navegador |
+| Git y GitHub Pages | Control de versiones y publicación HTTPS |
+
+Three.js se obtiene de un CDN mediante un `importmap` en `index.html`. Es necesaria una conexión a Internet para cargar esa dependencia en los módulos SBS. No se requiere instalar paquetes con npm ni ejecutar un proceso de compilación para utilizar el proyecto.
+
+## Estructura principal
 
 ```text
 StereoVision-Studio-3D/
 ├── index.html
 ├── README.md
 ├── .gitignore
-├── assets/
-│   ├── css/styles.css
-│   ├── img/
-│   ├── media/demo-anaglifo.png
-│   ├── media/demo-sbs.jpg
-│   ├── media/demo-sbs.mp4
-│   └── js/
-│       ├── main.js
-│       └── modules/
-│           ├── fileLoader.js      # tipos, decodificación y liberación de recursos
-│           ├── anaglyph.js       # imagen anaglifo y filtros visuales
-│           ├── imageSbs.js       # WebGL, textura, recorte UV y dos vistas
-│           ├── videoSbs.js       # reproducción sincronizada de MP4 SBS
-│           ├── calibration.js    # parámetros y restablecimiento
-│           └── vrMode.js         # modo inmersivo y orientación
-└── tests/matriz-pruebas.md
+└── assets/
+    ├── css/
+    │   └── styles.css
+    ├── img/
+    │   └── icon.png
+    └── js/
+        ├── main.js
+        └── modules/
+            ├── anaglyph.js
+            ├── calibration.js
+            ├── fileLoader.js
+            ├── imageExport.js
+            ├── imageSbs.js
+            ├── sbsInteractions.js
+            ├── videoExport.js
+            ├── videoSbs.js
+            └── vrMode.js
 ```
 
-## Ejecutar localmente (Windows / VS Code)
+**Responsabilidades:** `main.js` coordina módulos y estados; `fileLoader.js` valida y libera archivos locales; `calibration.js` centraliza los ajustes; `anaglyph.js` maneja la vista rojo-cian; `imageSbs.js` contiene el renderizador estéreo compartido; `sbsInteractions.js` controla los gestos; `videoSbs.js` maneja el reproductor; `imageExport.js` y `videoExport.js` generan los archivos descargables; `vrMode.js` gestiona presentación inmersiva y orientación.
 
-1. Descomprime la carpeta y ábrela en VS Code.
-2. Abre la terminal en la raíz del proyecto.
-3. Ejecuta `py -m http.server 5500` (o `python -m http.server 5500`).
-4. En el navegador visita `http://localhost:5500`.
-5. Selecciona un módulo **antes** de importar el archivo correspondiente.
-6. Utiliza los archivos de prueba de `assets/media/`: `demo-anaglifo.png` en anaglifo, `demo-sbs.jpg` en imagen SBS y `demo-sbs.mp4` en video SBS.
+La estructura anterior muestra los archivos principales de la aplicación; no requiere una carpeta de demostraciones ni una carpeta de pruebas dentro del repositorio.
 
-**Importante:** no abras `index.html` con `file://`; usa HTTP/HTTPS. Three.js se carga desde un **CDN fijado a versión 0.180.0**. Internet es necesario para los módulos SBS que dependen de este CDN; el archivo del usuario no se transmite al CDN. Los módulos anaglifo e interfaz básica no requieren esa descarga.
+## Ejecución local
 
-## Publicación en un repositorio nuevo
+Necesitas un navegador moderno con soporte de módulos ES y, para Imagen/Video SBS, WebGL. Desde la raíz del proyecto, abre la terminal de VS Code y ejecuta:
 
-1. En GitHub crea un repositorio **público nuevo y vacío** llamado `StereoVision-Studio-3D` (sin inicializar con README, pues este paquete ya lo incluye).
-2. Dentro de esta carpeta, ejecuta:
-
-```bash
-git init
-git add .
-git commit -m "Base modular de StereoVision Studio 3D"
-git branch -M main
-git remote add origin https://github.com/TU_USUARIO/StereoVision-Studio-3D.git
-git push -u origin main
+```powershell
+py -m http.server 5500
 ```
 
-3. En GitHub: **Settings → Pages → Build and deployment → Deploy from a branch → main → /(root)**.
-4. Verifica `https://TU_USUARIO.github.io/StereoVision-Studio-3D/` desde computadora y teléfono.
+También puedes utilizar:
 
-Las rutas internas son relativas y aptas para GitHub Pages en un subdirectorio.
+```powershell
+python -m http.server 5500
+```
 
-## Fundamento estereoscópico
+Después visita **http://localhost:5500/**. Evita abrir `index.html` mediante `file://`, porque algunas funciones y módulos requieren un origen HTTP o HTTPS.
 
-- Un archivo SBS **ya debe contener dos perspectivas diferentes**. El programa no crea profundidad a partir de una imagen plana.
-- La mitad izquierda de la fuente se presenta al ojo izquierdo y la mitad derecha al derecho, salvo que se active **Intercambiar ojos**.
-- El anaglifo requiere gafas físicas rojo-cian; los filtros CSS de brillo/contraste solo cambian la representación.
-- El desplazamiento digital horizontal es distinto de la distancia interpupilar física. No fuerces la visión doble.
-- El modo VR es una división visual de pantalla para visor de móvil; **no** añade corrección óptica de lentes Cardboard.
-- En contenido Half-SBS comprimido horizontalmente, el visor presenta la proporción codificada: se puede ampliar más adelante con un ajuste de *tipo de SBS* si se necesita compensar la compresión. La práctica no obliga a reconstruir formatos específicos.
+No se necesita backend, base de datos ni cuenta de usuario.
 
-## Probar y documentar
+## Privacidad y límites
 
-Revisa `tests/matriz-pruebas.md`. Deben completarse evidencias **reales** P-01…P-09, observaciones del teléfono, capturas, archivos y al menos dos incidencias encontradas y sus soluciones. Los tres archivos de `assets/media` son demostraciones **sintéticas originales** creadas con proyección desde dos posiciones de cámara; para la evaluación se aconseja además conseguir material estereoscópico real y verificarlo con las gafas.
+- Los archivos seleccionados se procesan localmente en el navegador y no se cargan a un servidor de la aplicación.
+- El archivo original no se sobrescribe: la calibración afecta la representación y las exportaciones generan archivos nuevos.
+- La aplicación no reconstruye profundidad a partir de una imagen o video 2D.
+- La decodificación MP4, pantalla completa, bloqueo de orientación y exportación de video dependen de las capacidades del navegador y dispositivo.
+- Los medios y la evidencia de prueba pueden mantenerse fuera del repositorio; el usuario proporciona sus propios archivos para utilizar el Studio.
 
-## Estado y pendientes
+## Validación
 
-Esta entrega es una **base funcional de primera iteración**, no una declaración de aprobación de todas las pruebas. Pendientes de verificar en dispositivo real: reproducción y decodificación de MP4 según códecs, comodidad y orden ocular en Cardboard, permisos de pantalla completa, funcionamiento de WebGL/CDN en GitHub Pages, rendimiento y controles táctiles. El área de visualización usa proporción y márgenes sin estiramientos arbitrarios. Los avisos de error permiten reintentar con otro archivo.
+El proyecto se probó manualmente en computadora y teléfono, incluyendo carga y sustitución de archivos, controles de los tres módulos, recuperación frente a entradas inválidas, gestos, visualización VR y exportaciones.
 
-No se han copiado archivos del repositorio StereoLab en esta base. Si se desea conservar funciones adicionales de `viewer.js`, `scene.js` o `controls.js`, se pueden adaptar más adelante sin afectar la separación de módulos.
+## Desarrollo y apoyo de diseño
+
+El proyecto fue desarrollado en **Visual Studio Code** para la exploración y refinamiento de la interfaz se empleó la skill **`frontend-design`** como herramienta de asistencia al diseño junto a Codex.
+
+Esta skill no es una dependencia de ejecución de la aplicación y no es necesario incluir sus archivos en el repositorio.
+
+## Publicación
+
+- **Aplicación HTTPS:** https://maricruzpil.github.io/studio3D/
+- **Código fuente:** https://github.com/MaricruzPil/studio3D
+- **Rama principal:** `main`
+
+La publicación se realiza mediante GitHub Pages. Los cambios integrados en `main` aparecerán en el sitio cuando termine el despliegue, siempre que GitHub Pages esté configurado para publicar esa rama o el flujo correspondiente.
