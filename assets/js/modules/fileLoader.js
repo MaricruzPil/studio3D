@@ -1,13 +1,15 @@
 /** API de archivos locales; todo el contenido permanece en este navegador. */
-const imageTypes = new Set(['image/jpeg','image/png','image/webp']);
-const extensions = {anaglyph:/\.(jpe?g|png|webp)$/i,sbs:/\.(jpe?g|png|webp)$/i,video:/\.mp4$/i};
+const imageTypes = {anaglyph:new Set(['image/jpeg','image/png','image/webp']),sbs:new Set(['image/jpeg','image/png','image/webp','image/avif'])};
+const extensions = {anaglyph:/\.(jpe?g|png|webp)$/i,sbs:/\.(jpe?g|png|webp|avif)$/i,video:/\.mp4$/i};
+const maxSbsBytes=30*1024*1024;
 export function validateSelection(file,mode){
   if(!file) throw new Error('Selecciona un archivo primero.');
   if(!mode) throw new Error('Elige el módulo antes de cargar un archivo.');
   if(!extensions[mode]?.test(file.name)) throw new Error(mode==='video'?'Este módulo solo acepta archivos MP4.':'Solo se admiten imágenes JPG, PNG o WebP.');
   if(mode==='video'){
     if(file.type && file.type!=='video/mp4') throw new Error('El archivo seleccionado no parece ser un MP4.');
-  } else if(file.type && !imageTypes.has(file.type)) throw new Error('El formato indicado por el archivo no es válido para este módulo.');
+  } else if(file.type && !imageTypes[mode]?.has(file.type)) throw new Error('El formato indicado por el archivo no es válido para este módulo.');
+  if(mode==='sbs'&&file.size>maxSbsBytes) throw new Error('La fotografía SBS supera el límite de 30 MB.');
   if(file.size===0) throw new Error('El archivo está vacío. Selecciona otro.');
 }
 export async function openLocalFile(file,mode){

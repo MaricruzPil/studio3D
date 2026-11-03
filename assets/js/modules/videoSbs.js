@@ -2,7 +2,7 @@
 export function timeLabel(sec){if(!Number.isFinite(sec))return '0:00';const s=Math.max(0,Math.floor(sec));return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;}
 export function attachPlayer(video, elements, onFrame, onPlayState){
   const {play,back,forward,progress,volume,time,vrPlay}=elements;
-  const sync=()=>{play.textContent=video.paused?'Reproducir':'Pausar';progress.value=video.duration>0?Math.round(video.currentTime/video.duration*1000):0;time.textContent=`${timeLabel(video.currentTime)} / ${timeLabel(video.duration)}`;};
+  const sync=()=>{const paused=video.paused;play.textContent=paused?'Reproducir':'Pausar';if(vrPlay){vrPlay.innerHTML=`<span aria-hidden="true">${paused?'▶':'Ⅱ'}</span>`;vrPlay.setAttribute('aria-label',paused?'Reproducir video':'Pausar video');vrPlay.title=paused?'Reproducir video':'Pausar video';}progress.value=video.duration>0?Math.round(video.currentTime/video.duration*1000):0;time.textContent=`${timeLabel(video.currentTime)} / ${timeLabel(video.duration)}`;};
   const toggle=async()=>{try{if(video.paused){await video.play();}else video.pause();}catch(e){onPlayState(false,`No se pudo reproducir el video: ${e.message}`);}};
   const seek=(delta)=>{if(Number.isFinite(video.duration))video.currentTime=Math.max(0,Math.min(video.duration,video.currentTime+delta));};
   const seekFromBar=()=>{if(Number.isFinite(video.duration))video.currentTime=video.duration*(Number(progress.value)/1000);};

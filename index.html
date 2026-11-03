@@ -41,7 +41,7 @@
           <div class="section-bar">
             <div><p class="kicker">Vista previa</p><h2 id="viewer-title">Visor</h2></div>
             <div class="view-actions">
-              <span id="mode-indicator" class="status-chip">Sin modalidad</span><button id="a-immersive-fit" type="button" class="button button-light immersive-control" hidden>Ajustar</button><button id="a-immersive-exit" type="button" class="button button-light immersive-control" hidden>Salir</button>
+              <span id="mode-indicator" class="status-chip">Sin modalidad</span><div id="sbs-interaction-controls" class="sbs-interaction-controls" hidden><button id="s-move-mode" type="button" class="button" aria-pressed="true">Mover</button><button id="s-separate-mode" type="button" class="button" aria-pressed="false">Separar</button></div><button id="s-expand" type="button" class="button button-light" hidden>Ampliar vista previa</button><button id="a-immersive-fit" type="button" class="button button-light immersive-control" hidden>Ajustar</button><button id="a-immersive-exit" type="button" class="button button-light immersive-control" hidden>Salir</button>
               <button id="vr-enter" type="button" class="button button-dark" disabled hidden>Entrar a VR</button>
             </div>
           </div>
@@ -56,9 +56,10 @@
             <div id="eye-labels" class="eye-labels" hidden><span>Ojo izquierdo</span><span>Ojo derecho</span></div>
             <div id="orientation-warning" class="orientation-warning" hidden>Gira el teléfono en horizontal para usar tus gafas VR.</div>
             <div id="vr-controls" class="vr-controls" hidden>
-              <button id="vr-play" type="button" class="button button-light" hidden>Reproducir / pausar</button>
-              <button id="vr-exit" type="button" class="button button-light">Salir de VR</button>
+              <button id="vr-play" type="button" class="button button-light vr-icon-button" aria-label="Reproducir video" title="Reproducir video" hidden><span aria-hidden="true">▶</span></button>
+              <button id="vr-exit" type="button" class="button button-light vr-exit-button" aria-label="Salir de VR"><span aria-hidden="true">×</span><span class="vr-exit-label">Salir</span></button>
             </div>
+            <button id="s-preview-close" type="button" class="button button-light s-preview-close" hidden>Cerrar vista previa</button>
           </div>
           <section id="player" class="player" aria-label="Controles de reproducción" hidden>
             <div class="player-buttons">
@@ -90,24 +91,43 @@
               <label>Escala <output for="a-scale">100 %</output><input id="a-scale" data-setting="scale" type="range" min="50" max="200" value="100" step="1"></label>
               <label>Brillo <output for="a-brightness">100 %</output><input id="a-brightness" data-setting="brightness" type="range" min="50" max="150" value="100" step="1"></label>
               <label>Contraste <output for="a-contrast">100 %</output><input id="a-contrast" data-setting="contrast" type="range" min="50" max="150" value="100" step="1"></label>
-              <div class="anaglyph-actions"><button id="a-fit" type="button" class="button">Ajustar al visor</button><button id="a-original" type="button" class="button">Ver original</button><button id="a-immersive" type="button" class="button">Ampliar visor</button></div>
+              <div class="anaglyph-actions"><button id="a-fit" type="button" class="button">Ajustar al visor</button><button id="a-original" type="button" class="button">Ver original</button><button id="a-immersive" type="button" class="button">Ampliar visor</button><button id="a-export" type="button" class="button">Exportar PNG</button></div>
               <button type="button" class="button reset-button">Restablecer ajustes</button>
               <p class="hint lens-hint">Usa lentes rojo-cian para percibir la profundidad estereoscópica.</p>
             </section>
 
             <section id="controls-sbs" class="tool-section controls" data-controls="sbs" hidden>
               <h3>Calibración de imagen SBS</h3>
-              <label>Desplazamiento relativo X <output for="s-horizontal">0 px</output><input id="s-horizontal" data-setting="horizontal" type="range" min="-60" max="60" value="0" step="1"></label>
-              <label>Alineación vertical L/R <output for="s-vertical">0 px</output><input id="s-vertical" data-setting="vertical" type="range" min="-40" max="40" value="0" step="1"></label>
-              <label>Escala <output for="s-scale">100 %</output><input id="s-scale" data-setting="scale" type="range" min="60" max="160" value="100" step="1"></label>
-              <label class="check-label"><input id="s-swap" data-setting="swap" type="checkbox">Intercambiar ojos L / R</label>
+              <fieldset class="control-group"><legend>Profundidad y alineación</legend>
+                <label>Paralaje <output for="s-parallax">0 px</output><input id="s-parallax" data-setting="parallax" type="range" min="-100" max="100" value="0" step="1"></label>
+                <label>Desnivel vertical L/R <output for="s-vertical">0 px</output><input id="s-vertical" data-setting="vertical" type="range" min="-50" max="50" value="0" step="1"></label>
+              </fieldset>
+              <fieldset class="control-group"><legend>Encuadre</legend>
+                <label>Escala <output for="s-scale">100 %</output><input id="s-scale" data-setting="scale" type="range" min="40" max="220" value="100" step="1"></label>
+                <label>Mover X <output for="s-horizontal">0 px</output><input id="s-horizontal" data-setting="panX" type="range" min="-160" max="160" value="0" step="1"></label>
+                <label>Mover Y <output for="s-pan-y">0 px</output><input id="s-pan-y" data-setting="panY" type="range" min="-120" max="120" value="0" step="1"></label>
+              </fieldset>
+              <fieldset class="control-group"><legend>Formato SBS</legend>
+                <label>Tipo de imagen <select id="s-format" data-setting="format"><option value="full">Full-SBS</option><option value="half">Half-SBS</option></select></label>
+                <label class="check-label"><input id="s-swap" data-setting="swap" type="checkbox">Intercambiar ojos L / R</label>
+              </fieldset>
+              <div class="sbs-actions"><button id="s-fit" type="button" class="button">Ajustar al visor</button><button id="s-export" type="button" class="button">Exportar PNG</button><button id="s-save" type="button" class="button">Guardar ajustes JSON</button></div>
               <button type="button" class="button reset-button">Restablecer calibración</button>
             </section>
 
             <section id="controls-video" class="tool-section controls" data-controls="video" hidden>
               <h3>Calibración de video SBS</h3>
-              <label>Desplazamiento relativo X <output for="v-horizontal">0 px</output><input id="v-horizontal" data-setting="horizontal" type="range" min="-60" max="60" value="0" step="1"></label>
-              <label>Escala <output for="v-scale">100 %</output><input id="v-scale" data-setting="scale" type="range" min="60" max="160" value="100" step="1"></label>
+              <div class="sbs-interaction-controls video-interaction-controls"><button id="v-move-mode" type="button" class="button" aria-pressed="true">Mover</button><button id="v-separate-mode" type="button" class="button" aria-pressed="false">Separar</button></div>
+              <fieldset class="control-group"><legend>Profundidad y alineación</legend>
+                <label>Separación / paralaje <output for="v-parallax">0 px</output><input id="v-parallax" data-setting="parallax" type="range" min="-100" max="100" value="0" step="1"></label>
+                <label>Desplazamiento vertical <output for="v-pan-y">0 px</output><input id="v-pan-y" data-setting="panY" type="range" min="-120" max="120" value="0" step="1"></label>
+              </fieldset>
+              <fieldset class="control-group"><legend>Encuadre</legend>
+                <label>Desplazamiento común X <output for="v-horizontal">0 px</output><input id="v-horizontal" data-setting="horizontal" type="range" min="-160" max="160" value="0" step="1"></label>
+                <label>Escala <output for="v-scale">100 %</output><input id="v-scale" data-setting="scale" type="range" min="40" max="220" value="100" step="1"></label>
+              </fieldset>
+              <p class="hint">Ajusta la separación antes de colocar el teléfono en las gafas. Suspende el uso si aparece fatiga o visión doble persistente.</p>
+              <div class="sbs-actions video-actions"><button id="v-export" type="button" class="button">Exportar video procesado</button></div>
               <button type="button" class="button reset-button">Restablecer calibración</button>
             </section>
           </div>
