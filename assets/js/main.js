@@ -42,6 +42,12 @@ function updateUI(){
   }
 }
 function resetValues(){if(!mode)return;calibration=newCalibration(mode);syncControls(mode,calibration);}
+function rendererSettings(values=calibration,rendererMode=mode){
+  if(rendererMode!=='video')return values;
+  // Video conserva su contrato horizontal; el renderer compartido usa panX.
+  return {...values,panX:values.horizontal,panY:0,parallax:0,vertical:0,format:'full',swap:false};
+}
+function applyRendererCalibration(){renderer?.setCalibration(rendererSettings());}
 function stopCurrent(){
   unbindPlayer?.();unbindPlayer=null;unbindPan?.();unbindPan=null;
   renderer?.clearTexture();
@@ -69,7 +75,7 @@ async function importFile(file){
       try{
         const r=await requireRenderer();
         if(token!==requestId){releaseLocalFile(result);ui.canvas.hidden=true;return;}
-        r.setMedia(result);r.setCalibration(calibration);
+        r.setMedia(result);r.setCalibration(rendererSettings(calibration,mode));
       } catch(err){ui.canvas.hidden=true;throw new Error(`No se pudo iniciar Three.js/WebGL: ${err.message}. Comprueba la conexión al CDN y el soporte WebGL.`);}
     }else{ui.img.src=result.url;updateAnaglyph(ui.img,calibration);unbindPan=attachAnaglyphPan(ui.display,ui.img,()=>calibration,()=>syncControls('anaglyph',calibration));}
     active=result;ui.info.textContent=`${file.name} · ${file.type||'formato desconocido'} · ${result.width} × ${result.height} px · ${formatSize(file.size)} · Cargado`;
@@ -106,11 +112,11 @@ for(const section of document.querySelectorAll('[data-controls]')){
     if(!active||section.dataset.controls!==mode)return;
     calibration[input.dataset.setting]=input.type==='checkbox'?input.checked:input.tagName==='SELECT'?input.value:Number(input.value);
     syncControls(mode,calibration);
-    if(mode==='anaglyph'){resetAnaglyphView();updateAnaglyph(ui.img,calibration);}else renderer?.setCalibration(calibration);
+    if(mode==='anaglyph'){resetAnaglyphView();updateAnaglyph(ui.img,calibration);}else applyRendererCalibration();
   };input.addEventListener(input.tagName==='SELECT'?'change':'input',applySetting);}
   section.querySelector('.reset-button').addEventListener('click',()=>{
     if(!active)return;resetValues();
-    if(mode==='anaglyph')updateAnaglyph(ui.img,calibration);else renderer?.setCalibration(calibration);
+    if(mode==='anaglyph'){resetAnaglyphView();updateAnaglyph(ui.img,calibration);}else applyRendererCalibration();
     feedback('Calibración restablecida','ready');
   });
 }
