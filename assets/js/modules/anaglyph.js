@@ -5,6 +5,7 @@ export function updateAnaglyph(img, settings) {
   img.style.filter=`brightness(${settings.brightness}%) contrast(${settings.contrast}%)`;
 }
 export function resetAnaglyphView(){panX=0;panY=0;}
+export function getAnaglyphPan(){return {panX,panY};}
 export function setOriginalPreview(img,enabled){if(enabled===original)return;original=enabled;if(enabled){originalStyles={transform:img.style.transform,filter:img.style.filter};img.style.transform='';img.style.filter='';}else if(originalStyles){img.style.transform=originalStyles.transform;img.style.filter=originalStyles.filter;originalStyles=null;}}
 export function attachAnaglyphPan(display,img,getSettings,onChange){
   const pointers=new Map();let pinch=null;

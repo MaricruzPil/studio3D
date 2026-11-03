@@ -26,7 +26,7 @@ export function attachSbsInteractions(stage,getConfig,changed,isEnabled,onTap){
     }
     if(current.length!==1||start.length!==1)return;
     const dx=current[0].x-start[0].x,dy=current[0].y-start[0].y,config=getConfig();
-    if(config.interactionMode==='separate')config.parallax=clamp('parallax',base.parallax+dx*.5);
+    if(config.interactionMode==='separate')config.parallax=clamp('parallax',(base.parallax||0)+dx*.5);
     else{config.panX=clamp('panX',base.panX+dx);config.panY=clamp('panY',base.panY+dy);}
     changed();
   };

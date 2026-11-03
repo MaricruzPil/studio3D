@@ -2,7 +2,7 @@
 export const defaults = Object.freeze({
   anaglyph: Object.freeze({scale:100, brightness:100, contrast:100}),
   sbs: Object.freeze({parallax:0, scale:100, panX:0, panY:0, vertical:0, format:'full', swap:false, interactionMode:'move'}),
-  video: Object.freeze({horizontal:0, scale:100})
+  video: Object.freeze({horizontal:0, parallax:0, scale:100, panX:0, panY:0, interactionMode:'move'})
 });
 export function newCalibration(mode) {return {...defaults[mode]};}
 export function syncControls(mode, values) {
