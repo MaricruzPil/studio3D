@@ -24,7 +24,7 @@ function updateUI(){
   $('#sbs-interaction-controls').hidden=!sbsReady;$('#s-expand').hidden=!sbsReady;$('#s-expand').disabled=!sbsReady;
   const videoReady=mode==='video'&&phase==='ready'&&!!active;
   $('.video-interaction-controls').hidden=!videoReady;
-  ui.display.classList.toggle('sbs-gesture-surface',sbsReady);
+  ui.display.classList.toggle('sbs-gesture-surface',sbsReady||videoReady);
   $('#s-move-mode').setAttribute('aria-pressed',String((calibration?.interactionMode||'move')==='move'));
   $('#s-separate-mode').setAttribute('aria-pressed',String(calibration?.interactionMode==='separate'));
   $('#v-move-mode').setAttribute('aria-pressed',String((calibration?.interactionMode||'move')==='move'));
@@ -52,7 +52,7 @@ function resetValues(){if(!mode)return;calibration=newCalibration(mode);syncCont
 function rendererSettings(values=calibration,rendererMode=mode){
   if(rendererMode!=='video')return values;
   // Video conserva su contrato horizontal; el renderer compartido usa panX.
-  return {...values,panX:values.horizontal,panY:values.panY||0,parallax:values.parallax||0,vertical:0,format:'full',swap:false};
+  return {...values,panX:values.panX??values.horizontal,panY:values.panY||0,parallax:values.parallax||0,vertical:0,format:'full',swap:false};
 }
 function applyRendererCalibration(){renderer?.setCalibration(rendererSettings());}
 function stopCurrent(){
@@ -65,7 +65,7 @@ async function exitVR(){if(!vr)return;vr=false;orientationHandler&&window.remove
 async function selectMode(next){
   requestId++;if(vr)await exitVR();setSbsExpanded(false);stopCurrent();mode=next;resetValues();setPhase('empty','Sin contenido activo');
 }
-function ensureSbsInteractions(){if(unbindSbsInteractions)return;unbindSbsInteractions=attachSbsInteractions(ui.display,()=>calibration,()=>{if(!['sbs','video'].includes(mode)||!active)return;syncControls(mode,calibration);applyRendererCalibration();},()=>['sbs','video'].includes(mode)&&!!active,type=>{if(vr&&type==='touch')exitVR()});}
+function ensureSbsInteractions(){if(unbindSbsInteractions)return;unbindSbsInteractions=attachSbsInteractions(ui.display,()=>calibration,()=>{if(!['sbs','video'].includes(mode)||!active)return;if(mode==='video'&&calibration.interactionMode==='move')calibration.horizontal=calibration.panX;syncControls(mode,calibration);applyRendererCalibration();},()=>['sbs','video'].includes(mode)&&!!active,type=>{if(vr&&type==='touch')exitVR()});}
 async function requireRenderer(){if(renderer){ensureSbsInteractions();return renderer;}const {StereoRenderer}=await import('./modules/imageSbs.js');renderer=new StereoRenderer(ui.canvas,ui.display);ensureSbsInteractions();return renderer;}
 async function importFile(file){
   if(!mode){feedback('Primero selecciona una modalidad.','error');return;}
@@ -118,6 +118,7 @@ for(const section of document.querySelectorAll('[data-controls]')){
   for(const input of section.querySelectorAll('[data-setting]')){const applySetting=()=>{
     if(!active||section.dataset.controls!==mode)return;
     calibration[input.dataset.setting]=input.type==='checkbox'?input.checked:input.tagName==='SELECT'?input.value:Number(input.value);
+    if(mode==='video'&&input.dataset.setting==='horizontal')calibration.panX=calibration.horizontal;
     syncControls(mode,calibration);
     if(mode==='anaglyph'){resetAnaglyphView();updateAnaglyph(ui.img,calibration);}else applyRendererCalibration();
   };input.addEventListener(input.tagName==='SELECT'?'change':'input',applySetting);}
@@ -130,9 +131,9 @@ for(const section of document.querySelectorAll('[data-controls]')){
 ui.fit.addEventListener('click',()=>{if(active&&mode==='anaglyph'){calibration.scale=100;resetAnaglyphView();syncControls(mode,calibration);updateAnaglyph(ui.img,calibration)}});
 $('#s-fit').addEventListener('click',()=>{if(active&&mode==='sbs'){calibration.scale=100;calibration.panX=0;calibration.panY=0;syncControls(mode,calibration);renderer?.setCalibration(calibration);feedback('Visor ajustado','ready')}});
 $('#s-save').addEventListener('click',()=>{if(!active||mode!=='sbs')return;const payload={proyecto:'Studio 3D',modalidad:'imagen-sbs',imagen:{name:active.file.name,type:active.file.type||'unknown',width:active.width,height:active.height,size:active.file.size},calibracion:{parallax:calibration.parallax,scale:calibration.scale,panX:calibration.panX,panY:calibration.panY,vertical:calibration.vertical,format:calibration.format,swap:calibration.swap,interactionMode:calibration.interactionMode},fecha:new Date().toISOString()};const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download='calibracion-sbs.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);feedback('Ajustes descargados como JSON','ready')});
-$('#a-export').addEventListener('click',async()=>{if(!active||mode!=='anaglyph')return;try{await exportAnaglyphPng(ui.img,calibration,getAnaglyphPan());feedback('Imagen anaglifo exportada','ready')}catch(error){feedback(error.message,'error')}});
+$('#a-export').addEventListener('click',async()=>{if(!active||mode!=='anaglyph')return;try{const scale=calibration.scale/100,rect=ui.img.getBoundingClientRect();await exportAnaglyphPng(ui.img,calibration,getAnaglyphPan(),{width:rect.width/scale,height:rect.height/scale});feedback('Imagen anaglifo exportada','ready')}catch(error){feedback(error.message,'error')}});
 $('#s-export').addEventListener('click',async()=>{if(!active||mode!=='sbs')return;try{await exportSbsPng(active.image,calibration);feedback('Imagen SBS exportada','ready')}catch(error){feedback(error.message,'error')}});
-$('#v-export').addEventListener('click',async()=>{if(!active||mode!=='video'||!renderer)return;const button=$('#v-export');button.disabled=true;feedback('Procesando video…','loading');try{const result=await exportProcessedVideo(renderer,active.video,p=>{feedback(`Procesando video ${Math.round(p*100)} %`,'loading')});feedback(result.hasAudio?'Video exportado con audio':'Video exportado sin pista de audio compatible','ready')}catch(error){feedback(error.message,'error')}finally{button.disabled=false;updateUI()}});
+$('#v-export').addEventListener('click',async()=>{if(!active||mode!=='video'||!renderer)return;const button=$('#v-export');button.disabled=true;feedback('Procesando video…','loading');try{const result=await exportProcessedVideo(renderer,active.video,p=>{feedback(`Procesando video ${Math.round(p*100)} %`,'loading')});feedback(result.audioSourceAvailable?'Video exportado. Audio de origen capturable; verifica la pista del archivo generado.':'Video exportado sin pista de audio de origen compatible','ready')}catch(error){feedback(error.message,'error')}finally{button.disabled=false;updateUI()}});
 function setSbsExpanded(expanded){document.body.classList.toggle('sbs-preview-expanded',expanded);$('#s-expand').textContent=expanded?'Reducir vista previa':'Ampliar vista previa';$('#s-preview-close').hidden=!expanded;requestAnimationFrame(()=>renderer?.draw())}
 $('#s-move-mode').addEventListener('click',()=>{if(!calibration||mode!=='sbs')return;calibration.interactionMode='move';syncControls(mode,calibration);updateUI()});
 $('#s-separate-mode').addEventListener('click',()=>{if(!calibration||mode!=='sbs')return;calibration.interactionMode='separate';syncControls(mode,calibration);updateUI()});

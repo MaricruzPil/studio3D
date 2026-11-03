@@ -1,11 +1,14 @@
 function downloadBlob(blob,name){const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download=name;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 function canvasBlob(canvas,type='image/png'){return new Promise((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(new Error('El navegador no pudo generar la imagen.')),type));}
 
-export async function exportAnaglyphPng(image,settings,pan){
+export async function exportAnaglyphPng(image,settings,pan,displaySize){
   const canvas=document.createElement('canvas');canvas.width=image.naturalWidth;canvas.height=image.naturalHeight;
   const ctx=canvas.getContext('2d');if(!ctx)throw new Error('Canvas 2D no disponible para exportar.');
+  const cssScale=settings.scale/100;
+  const sourcePerCssX=displaySize?.width?image.naturalWidth/displaySize.width:1;
+  const sourcePerCssY=displaySize?.height?image.naturalHeight/displaySize.height:1;
   ctx.filter=`brightness(${settings.brightness}%) contrast(${settings.contrast}%)`;
-  ctx.translate(canvas.width/2+pan.panX,canvas.height/2+pan.panY);ctx.scale(settings.scale/100,settings.scale/100);
+  ctx.translate(canvas.width/2+pan.panX*sourcePerCssX,canvas.height/2+pan.panY*sourcePerCssY);ctx.scale(cssScale,cssScale);
   ctx.drawImage(image,-canvas.width/2,-canvas.height/2,canvas.width,canvas.height);
   downloadBlob(await canvasBlob(canvas),'studio3d-anaglifo.png');
 }

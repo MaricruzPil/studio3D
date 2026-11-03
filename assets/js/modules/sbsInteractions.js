@@ -9,6 +9,7 @@ export function attachSbsInteractions(stage,getConfig,changed,isEnabled,onTap){
   const clearTap=()=>{tap=null;};
   const down=event=>{
     if(!isEnabled()||event.button>0)return;
+    if(event.target.closest?.('button,input,select,a,label'))return;
     stage.setPointerCapture?.(event.pointerId);pointers.set(event.pointerId,{x:event.clientX,y:event.clientY});
     if(pointers.size===1)tap={x:event.clientX,y:event.clientY,time:performance.now(),type:event.pointerType};else clearTap();
     rebase();
