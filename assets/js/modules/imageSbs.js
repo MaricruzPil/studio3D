@@ -57,7 +57,7 @@ export class StereoRenderer {
     const eyeW=Math.min(leftW,rightW);
     const encodedEyeAspect=(this.width/2)/this.height;
     const eyeAspect=this.settings.format==='half'?encodedEyeAspect*2:encodedEyeAspect;
-    const fitW=Math.min(eyeW,h*eyeAspect),fitH=fitW/eyeAspect;
+    const fitW=Math.min(eyeW,compositionH*eyeAspect),fitH=fitW/eyeAspect;
     const scale=(this.settings.scale??100)/100;
     const worldW=fitW*scale,worldH=fitH*scale;
     const px=1;
